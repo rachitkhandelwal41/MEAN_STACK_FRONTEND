@@ -1,0 +1,115 @@
+<nav class="fixed top-0 left-0 right-0 bg-white shadow-md z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+      <!-- Logo -->
+      <div class="flex items-center">
+        <a [routerLink]="isAuthenticated() ? getDashboardRoute() : '/'" class="flex items-center space-x-2">
+          <svg class="w-8 h-8 text-cyan-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zM9 5a1 1 0 112 0v4a1 1 0 11-2 0V5zm0 8a1 1 0 112 0v.01a1 1 0 11-2 0V13z" clip-rule="evenodd"/>
+          </svg>
+          <span class="text-xl font-bold text-gray-900">HealthConnect</span>
+        </a>
+      </div>
+
+      <!-- Navigation Items -->
+      @if (isAuthenticated()) {
+        <!-- Authenticated Navigation -->
+        <div class="hidden md:flex items-center space-x-8">
+          @if (userRole() === 'PATIENT') {
+            <!-- Patient Navigation -->
+            <a routerLink="/patient/dashboard" routerLinkActive="text-cyan-500 font-semibold" class="text-gray-700 hover:text-cyan-500 transition-colors">Dashboard</a>
+            <a routerLink="/patient/appointments" routerLinkActive="text-cyan-500 font-semibold" class="text-gray-700 hover:text-cyan-500 transition-colors">Appointments</a>
+            <a routerLink="/patient/prescriptions" routerLinkActive="text-cyan-500 font-semibold" class="text-gray-700 hover:text-cyan-500 transition-colors">Prescriptions</a>
+          } @else if (userRole() === 'DOCTOR') {
+            <!-- Doctor Navigation -->
+            <a routerLink="/doctor/dashboard" routerLinkActive="text-cyan-500 font-semibold" class="text-gray-700 hover:text-cyan-500 transition-colors">Dashboard</a>
+            <a routerLink="/doctor/patients" routerLinkActive="text-cyan-500 font-semibold" class="text-gray-700 hover:text-cyan-500 transition-colors">Patients</a>
+            <a routerLink="/doctor/appointments" routerLinkActive="text-cyan-500 font-semibold" class="text-gray-700 hover:text-cyan-500 transition-colors">Appointments</a>
+            <a routerLink="/doctor/prescriptions" routerLinkActive="text-cyan-500 font-semibold" class="text-gray-700 hover:text-cyan-500 transition-colors">Prescriptions</a>
+          } @else if (userRole() === 'ADMIN') {
+            <!-- Admin Navigation -->
+            <a routerLink="/admin/dashboard" routerLinkActive="text-cyan-500 font-semibold" class="text-gray-700 hover:text-cyan-500 transition-colors">Dashboard</a>
+            <a routerLink="/admin/doctors" routerLinkActive="text-cyan-500 font-semibold" class="text-gray-700 hover:text-cyan-500 transition-colors">Doctors</a>
+            <a routerLink="/admin/departments" routerLinkActive="text-cyan-500 font-semibold" class="text-gray-700 hover:text-cyan-500 transition-colors">Departments</a>
+            <a routerLink="/admin/billing" routerLinkActive="text-cyan-500 font-semibold" class="text-gray-700 hover:text-cyan-500 transition-colors">Billing</a>
+            <a routerLink="/admin/reports" routerLinkActive="text-cyan-500 font-semibold" class="text-gray-700 hover:text-cyan-500 transition-colors">Reports</a>
+          }
+        </div>
+
+        <!-- User Profile Dropdown -->
+        <div class="relative">
+          <button (click)="toggleDropdown()" class="flex items-center space-x-2 text-gray-700 hover:text-cyan-500 focus:outline-none">
+            <div class="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center text-white font-semibold">
+              {{ getUserInitial() }}
+            </div>
+            <span class="hidden md:block">{{ userName() }}</span>
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+
+          @if (showDropdown()) {
+            <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+              <a routerLink="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Profile</a>
+              <a routerLink="/settings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
+              <button (click)="onLogout()" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</button>
+            </div>
+          }
+        </div>
+      } @else {
+        <!-- Unauthenticated Navigation -->
+        <div class="hidden md:flex items-center space-x-8">
+          <a href="#home" class="text-gray-700 hover:text-cyan-500 transition-colors">Home</a>
+          <a href="#about" class="text-gray-700 hover:text-cyan-500 transition-colors">About</a>
+          <a href="#services" class="text-gray-700 hover:text-cyan-500 transition-colors">Services</a>
+          <a href="#contact" class="text-gray-700 hover:text-cyan-500 transition-colors">Contact</a>
+        </div>
+
+        <!-- Login Button -->
+        <div>
+          <a routerLink="/sign-in" class="px-6 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition-colors">Login</a>
+        </div>
+      }
+
+      <!-- Mobile menu button -->
+      <button (click)="toggleMobileMenu()" class="md:hidden text-gray-700 hover:text-cyan-500 focus:outline-none">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  @if (showMobileMenu()) {
+    <div class="md:hidden border-t border-gray-200">
+      <div class="px-2 pt-2 pb-3 space-y-1">
+        @if (isAuthenticated()) {
+          @if (userRole() === 'PATIENT') {
+            <a routerLink="/patient/dashboard" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">Dashboard</a>
+            <a routerLink="/patient/appointments" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">Appointments</a>
+            <a routerLink="/patient/prescriptions" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">Prescriptions</a>
+          } @else if (userRole() === 'DOCTOR') {
+            <a routerLink="/doctor/dashboard" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">Dashboard</a>
+            <a routerLink="/doctor/patients" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">Patients</a>
+            <a routerLink="/doctor/appointments" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">Appointments</a>
+            <a routerLink="/doctor/prescriptions" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">Prescriptions</a>
+          } @else if (userRole() === 'ADMIN') {
+            <a routerLink="/admin/dashboard" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">Dashboard</a>
+            <a routerLink="/admin/doctors" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">Doctors</a>
+            <a routerLink="/admin/departments" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">Departments</a>
+            <a routerLink="/admin/billing" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">Billing</a>
+            <a routerLink="/admin/reports" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">Reports</a>
+          }
+          <button (click)="onLogout()" class="block w-full text-left px-3 py-2 text-red-600 hover:bg-gray-100 rounded-md">Logout</button>
+        } @else {
+          <a href="#home" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">Home</a>
+          <a href="#about" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">About</a>
+          <a href="#services" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">Services</a>
+          <a href="#contact" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">Contact</a>
+          <a routerLink="/sign-in" class="block px-3 py-2 bg-cyan-500 text-white rounded-md">Login</a>
+        }
+      </div>
+    </div>
+  }
+</nav>

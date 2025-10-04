@@ -4,292 +4,404 @@ priority: high
 scope: project
 ---
 
-# Frontend Development Rules - Healthcare Management Portal
+# Frontend Development Context - Healthcare Management Portal
 
-You are an expert in TypeScript, Angular, and scalable web application development. You write maintainable, performant, and accessible code following Angular and TypeScript best practices for healthcare applications.
+## Project Overview
+
+Healthcare Management Portal with role-based access for:
+- **Patients**: Register, search doctors, book/cancel appointments, view prescriptions, pay bills
+- **Doctors**: Manage appointments, diagnose patients, prescribe medicines, set availability
+- **Admins**: Manage doctors, departments, billing records, generate reports
+
+**Tech Stack**: Angular (standalone), TypeScript, TailwindCSS, PostgreSQL backend via REST API
+
+## Angular CLI Usage
+
+**ALWAYS use Angular CLI for generation:**
+```bash
+# Components
+ng generate component features/patient/dashboard --skip-tests
+
+# Services
+ng generate service core/services/appointment --skip-tests
+
+# Guards
+ng generate guard core/guards/auth --skip-tests
+
+# Interceptors
+ng generate interceptor core/interceptors/auth --skip-tests
+
+# Pipes
+ng generate pipe shared/pipes/date-format --skip-tests
+```
+
+**Note**: Use `--skip-tests` flag unless tests are explicitly requested.
 
 ## Core Principles
 
-- **Deep Reasoning Required**: Before implementing any solution, analyze the problem statement thoroughly. Consider user experience, performance implications, accessibility, security, and maintainability. Evaluate multiple approaches and select the most optimal solution.
-- **No Tests/Documentation**: Do NOT generate test files, documentation files, README updates, or any .md files unless explicitly requested.
-- **Healthcare Focus**: Design intuitive, accessible interfaces for patients, doctors, and admins. Prioritize data privacy and user experience.
+- **Deep Reasoning**: Analyze problem thoroughly before implementation
+- **No Tests/Docs**: Never generate test files, README, or .md files unless explicitly requested
+- **CLI First**: Always use Angular CLI for file generation
+- **Backend Integration**: All data from REST API via services
+- **TailwindCSS Only**: Use Tailwind utility classes for all styling
+- **Healthcare Focus**: Prioritize accessibility, data privacy, UX
 
-## TypeScript Best Practices
+## TypeScript Standards
 
-- Use strict type checking (`strict: true` in tsconfig)
-- Prefer type inference when the type is obvious
-- Avoid the `any` type; use `unknown` when type is uncertain
-- Define interfaces for all data models matching backend DTOs
-- Use type guards for runtime type checking
-- Leverage union types and discriminated unions
-- Use `Readonly` and `Partial` utility types appropriately
-- Define enums for status values (AppointmentStatus, UserRole, PaymentStatus)
-
-## Angular Best Practices
-
-- Always use standalone components (no NgModules)
-- Must NOT set `standalone: true` inside Angular decorators - it's the default
-- Use signals for state management
-- Implement lazy loading for feature routes
-- Do NOT use `@HostBinding` and `@HostListener` decorators - use the `host` object instead
-- Use `NgOptimizedImage` for all static images (not for base64)
-- Set `changeDetection: ChangeDetectionStrategy.OnPush` in all components
-- Use Angular's built-in dependency injection with `inject()` function
-
-## Component Architecture
-
-- Keep components small and focused on a single responsibility
-- Use `input()` and `output()` functions instead of decorators
-- Use `computed()` for derived state
-- Prefer inline templates for small components (< 10 lines)
-- Move complex logic to services
-- Implement smart/dumb component pattern:
-  - **Smart components**: Handle data fetching, state management, routing
-  - **Dumb components**: Pure presentation, inputs/outputs only
-- Use `@defer` for lazy loading heavy components
-- Implement error boundaries for critical sections
-
-## State Management with Signals
-
-- Use signals for local component state
-- Use `computed()` for derived state
-- Keep state transformations pure and predictable
-- Do NOT use `mutate()` on signals, use `update()` or `set()` instead
-- Create custom signal-based stores for shared state:
-
+- Strict mode enabled (`strict: true`)
+- No `any` type - use `unknown` or proper types
+- Define interfaces matching backend DTOs
+- Use enums for status values:
 ```typescript
-// Example pattern for shared state
-export class AppointmentStore {
-  private appointmentsSignal = signal<Appointment[]>([]);
-  
-  appointments = this.appointmentsSignal.asReadonly();
-  upcomingAppointments = computed(() => 
-    this.appointments().filter(a => a.status === 'BOOKED')
-  );
-  
-  addAppointment(appointment: Appointment) {
-    this.appointmentsSignal.update(list => [...list, appointment]);
-  }
-}
-```
-
-## Forms Implementation
-
-- Prefer Reactive forms over Template-driven forms
-- Use `FormBuilder` with strong typing
-- Implement custom validators for business rules
-- Use `updateOn: 'blur'` for better performance on large forms
-- Create reusable form components for common inputs
-- Implement proper error handling and display
-- Use `nonNullable` form controls where appropriate
-- Apply debouncing for search/filter inputs
-
-## Template Best Practices
-
-- Keep templates simple - move complex logic to component/service
-- Use native control flow (`@if`, `@for`, `@switch`) instead of structural directives
-- Do NOT use `ngClass` - use `[class.active]="isActive()"` bindings instead
-- Do NOT use `ngStyle` - use `[style.color]="getColor()"` bindings instead
-- Use the async pipe to handle observables and auto-unsubscribe
-- Use trackBy functions in `@for` loops for performance
-- Apply proper accessibility attributes (aria-labels, roles, semantic HTML)
-
-## Services Design
-
-- Design services around a single responsibility
-- Use `providedIn: 'root'` for singleton services
-- Use the `inject()` function instead of constructor injection
-- Implement services for:
-  - **API communication** (one service per domain: PatientService, AppointmentService)
-  - **State management** (stores for shared state)
-  - **Business logic** (complex calculations, validations)
-  - **Utilities** (date formatting, validation helpers)
-- Return observables from HTTP calls, convert to signals in components
-- Implement proper error handling with typed errors
-- Use interceptors for global concerns (auth tokens, error handling)
-
-## API Integration
-
-- Create typed interfaces for all API requests/responses
-- Use HttpClient with proper typing
-- Implement retry logic for failed requests (exponential backoff)
-- Handle loading states consistently
-- Display user-friendly error messages
-- Use RxJS operators for data transformation (map, filter, catchError)
-- Implement request cancellation for navigation events
-- Cache responses where appropriate (patient profiles, doctor lists)
-
-## Routing & Navigation
-
-- Implement lazy loading for all feature modules
-- Use route guards for authentication and authorization:
-  - `AuthGuard`: Check if user is logged in
-  - `RoleGuard`: Verify user has required role (PATIENT/DOCTOR/ADMIN)
-- Implement route resolvers for data pre-fetching
-- Use route parameters for dynamic content (appointment/:id)
-- Apply proper route titles for accessibility
-- Implement breadcrumb navigation for complex flows
-- Handle navigation errors gracefully
-
-## Security Implementation
-
-- Never store sensitive data in localStorage (use httpOnly cookies for tokens)
-- Sanitize user inputs (Angular's built-in sanitization)
-- Implement proper authentication flows with token refresh
-- Use route guards to protect authenticated routes
-- Implement role-based UI rendering (hide admin features from patients)
-- Validate data on both client and server
-- Use Angular's DomSanitizer for dynamic HTML (rarely needed)
-- Implement CSP headers via backend
-
-## Healthcare-Specific Features
-
-- **Patient Dashboard**: Show upcoming appointments, prescriptions, medical history
-- **Doctor Dashboard**: Display today's appointments, patient queue, quick actions
-- **Appointment Booking**: 
-  - Real-time availability checking
-  - Conflict prevention
-  - Confirmation flow with review step
-- **Search & Filters**: Implement for doctor search (specialization, availability, location)
-- **Medical Records**: Display with proper privacy controls
-- **Billing**: Show itemized bills, payment history, pending amounts
-- **Prescription View**: Format prescriptions clearly with medicine details
-- **Accessibility**: WCAG 2.1 AA compliance for all healthcare interactions
-
-## UI/UX Best Practices
-
-- Use consistent spacing and typography
-- Implement loading skeletons for better perceived performance
-- Show immediate feedback for user actions (toasts, inline messages)
-- Use color coding meaningfully (status indicators, priority levels)
-- Implement confirmation dialogs for destructive actions (cancel appointment)
-- Apply progressive disclosure (show details on demand)
-- Use card-based layouts for data grouping
-- Implement responsive design (mobile-first approach)
-- Use icons with text labels for clarity
-- Provide empty states with helpful messages
-
-## Performance Optimization
-
-- Use `OnPush` change detection strategy
-- Implement virtual scrolling for large lists (CDK ScrollingModule)
-- Lazy load routes and components
-- Use `@defer` for below-the-fold content
-- Optimize images (WebP format, NgOptimizedImage)
-- Implement pagination for large data sets
-- Debounce search inputs (300-500ms)
-- Use memoization for expensive computations
-- Avoid memory leaks (unsubscribe from observables)
-- Use pure pipes for transformations
-
-## Accessibility (A11y)
-
-- Use semantic HTML elements (button, nav, main, aside)
-- Provide alt text for all images
-- Implement keyboard navigation (focus management, tab order)
-- Use ARIA labels and roles where needed
-- Ensure sufficient color contrast (WCAG AA standards)
-- Provide skip navigation links
-- Announce dynamic content changes to screen readers
-- Support zoom up to 200%
-- Test with screen readers (NVDA, JAWS, VoiceOver)
-
-## Error Handling
-
-- Create centralized error handling service
-- Display user-friendly error messages
-- Implement retry mechanisms for transient failures
-- Show fallback UI for critical errors
-- Log errors for debugging (with user context)
-- Provide recovery options (retry button, navigation back)
-- Handle network offline scenarios
-- Implement global HTTP error interceptor
-
-## Code Organization
-
-```
-src/
-├── app/
-│   ├── core/                 # Singleton services, guards, interceptors
-│   │   ├── guards/
-│   │   ├── interceptors/
-│   │   └── services/
-│   ├── shared/               # Shared components, pipes, directives
-│   │   ├── components/
-│   │   ├── pipes/
-│   │   └── directives/
-│   ├── features/             # Feature modules (lazy loaded)
-│   │   ├── patient/
-│   │   ├── doctor/
-│   │   ├── admin/
-│   │   └── appointments/
-│   ├── models/               # TypeScript interfaces/types
-│   └── utils/                # Helper functions
-```
-
-## Styling Guidelines
-
-- Use utility-first CSS framework (Tailwind) or modular CSS
-- Implement design system with CSS variables for theming
-- Use component-scoped styles (avoid global styles)
-- Follow BEM or similar naming convention for custom CSS
-- Implement dark mode support if applicable
-- Use CSS Grid and Flexbox for layouts
-- Apply consistent spacing scale (4px, 8px, 16px, 24px, 32px)
-- Use CSS animations sparingly (60fps performance)
-
-## Data Models
-
-- Define interfaces matching backend DTOs exactly
-- Use enums for status values and roles
-- Create union types for discriminated unions
-- Implement type guards for runtime checking
-- Use readonly properties where data shouldn't mutate
-
-```typescript
-// Example structure
-export interface Appointment {
-  readonly id: string;
-  readonly patientId: string;
-  readonly doctorId: string;
-  appointmentDate: Date;
-  status: AppointmentStatus;
-  readonly createdAt: Date;
-  updatedAt: Date;
-}
-
 export enum AppointmentStatus {
   BOOKED = 'BOOKED',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED'
 }
+
+export enum UserRole {
+  PATIENT = 'PATIENT',
+  DOCTOR = 'DOCTOR',
+  ADMIN = 'ADMIN'
+}
 ```
 
-## Real-time Features
+## Angular Architecture
 
-- Implement WebSocket connection for real-time updates (appointment confirmations)
-- Show live appointment status changes
-- Display notification badges for new prescriptions/messages
-- Use Server-Sent Events (SSE) for one-way updates
-- Implement optimistic UI updates with rollback on error
+**Standalone Components (Default)**
+- No NgModules, no `standalone: true` in decorators
+- Use `imports` array for dependencies
+- Lazy load feature routes
 
-## Testing Strategy (When Requested)
+**Component Structure**
+- Use `inject()` function for DI (not constructor injection)
+- Use `input()` and `output()` functions (not decorators)
+- Set `changeDetection: ChangeDetectionStrategy.OnPush`
+- Use `host` object instead of `@HostBinding`/`@HostListener`
+- Use native control flow: `@if`, `@for`, `@switch`
 
-- Unit tests for services and complex logic
-- Integration tests for critical user flows
-- E2E tests for booking and payment flows
-- Accessibility testing (axe-core, Lighthouse)
+**State Management**
+- Use signals for component state
+- Use `computed()` for derived values
+- Use `update()` or `set()` on signals (NOT `mutate()`)
+
+## Service Layer (Backend Integration)
+
+**Service Pattern**
+```typescript
+import { inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+export class AppointmentService {
+  private http = inject(HttpClient);
+  private apiUrl = '/api/appointments';
+
+  getAppointments(): Observable<Appointment[]> {
+    return this.http.get<Appointment[]>(this.apiUrl);
+  }
+
+  bookAppointment(data: BookingRequest): Observable<Appointment> {
+    return this.http.post<Appointment>(this.apiUrl, data);
+  }
+}
+```
+
+**Service Organization**
+- One service per domain: `PatientService`, `DoctorService`, `AppointmentService`, `BillingService`
+- Use `providedIn: 'root'` for singleton services
+- Return Observables from HTTP calls
+- Convert to signals in components using `toSignal()`
+- Implement error handling with typed errors
+- Use interceptors for auth tokens and global error handling
+
+## Forms with Backend
+
+**Reactive Forms Pattern**
+```typescript
+import { inject } from '@angular/core';
+import { FormBuilder, Validators } from '@angular/forms';
+
+export class BookingComponent {
+  private fb = inject(FormBuilder);
+  private appointmentService = inject(AppointmentService);
+
+  bookingForm = this.fb.nonNullable.group({
+    doctorId: ['', Validators.required],
+    appointmentDate: ['', Validators.required],
+    notes: ['']
+  });
+
+  onSubmit() {
+    if (this.bookingForm.valid) {
+      this.appointmentService
+        .bookAppointment(this.bookingForm.getRawValue())
+        .subscribe({
+          next: (appointment) => {
+            // Handle success
+          },
+          error: (error) => {
+            // Handle error
+          }
+        });
+    }
+  }
+}
+```
+
+## TailwindCSS Styling
+
+**Core Principles**
+- Use Tailwind utility classes exclusively
+- No custom CSS unless absolutely necessary
+- No `ngClass` or `ngStyle` - use direct class/style bindings:
+```html
+<div [class.bg-green-500]="status === 'COMPLETED'"
+     [class.bg-blue-500]="status === 'BOOKED'">
+```
+
+**Common Patterns**
+```html
+<!-- Cards -->
+<div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+
+<!-- Buttons -->
+<button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 
+               disabled:opacity-50 disabled:cursor-not-allowed">
+
+<!-- Forms -->
+<input class="w-full px-3 py-2 border border-gray-300 rounded-md 
+              focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+<!-- Spacing Scale -->
+<!-- Use: p-4, m-4, gap-4, space-y-4 (4px increments: 4, 8, 12, 16, 24, 32) -->
+
+<!-- Responsive -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+<!-- Loading States -->
+<div class="animate-pulse bg-gray-200 h-20 rounded-md"></div>
+```
+
+**Color Scheme**
+- Primary: `blue-600`, `blue-700`
+- Success: `green-500`, `green-600`
+- Warning: `yellow-500`, `yellow-600`
+- Danger: `red-500`, `red-600`
+- Neutral: `gray-100` to `gray-900`
+
+## Data Models (Backend DTOs)
+
+```typescript
+export interface User {
+  userId: number;
+  username: string;
+  email: string;
+  phone: string;
+  role: UserRole;
+}
+
+export interface Patient {
+  patientId: number;
+  userId: number;
+  age: number;
+  gender: string;
+  bloodGroup: string;
+}
+
+export interface Doctor {
+  doctorId: number;
+  userId: number;
+  deptId: number;
+  specialization: string;
+  availability: string;
+}
+
+export interface Appointment {
+  appointmentId: number;
+  patientId: number;
+  doctorId: number;
+  appointmentDate: string; // ISO date string
+  status: AppointmentStatus;
+}
+
+export interface Prescription {
+  prescriptionId: number;
+  appointmentId: number;
+  doctorNotes: string;
+  medicines: string;
+}
+
+export interface Department {
+  deptId: number;
+  name: string;
+}
+```
+
+## Routing & Guards
+
+**Route Structure**
+```typescript
+export const routes: Routes = [
+  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  { path: 'login', loadComponent: () => import('./features/auth/login.component') },
+  {
+    path: 'patient',
+    canActivate: [authGuard, roleGuard(UserRole.PATIENT)],
+    loadChildren: () => import('./features/patient/patient.routes')
+  },
+  {
+    path: 'doctor',
+    canActivate: [authGuard, roleGuard(UserRole.DOCTOR)],
+    loadChildren: () => import('./features/doctor/doctor.routes')
+  },
+  {
+    path: 'admin',
+    canActivate: [authGuard, roleGuard(UserRole.ADMIN)],
+    loadChildren: () => import('./features/admin/admin.routes')
+  }
+];
+```
+
+**Guards Implementation**
+- `authGuard`: Check authentication status
+- `roleGuard`: Verify user role matches route requirement
+- Use functional guards with `inject()`
+
+## Folder Structure
+
+```
+src/app/
+├── core/
+│   ├── guards/
+│   │   ├── auth.guard.ts
+│   │   └── role.guard.ts
+│   ├── interceptors/
+│   │   ├── auth.interceptor.ts
+│   │   └── error.interceptor.ts
+│   └── services/
+│       ├── auth.service.ts
+│       ├── patient.service.ts
+│       ├── doctor.service.ts
+│       ├── appointment.service.ts
+│       └── billing.service.ts
+├── shared/
+│   ├── components/
+│   │   ├── header/
+│   │   ├── footer/
+│   │   └── loading-spinner/
+│   └── pipes/
+│       └── date-format.pipe.ts
+├── features/
+│   ├── auth/
+│   │   └── login/
+│   ├── patient/
+│   │   ├── dashboard/
+│   │   ├── appointments/
+│   │   ├── search-doctors/
+│   │   └── prescriptions/
+│   ├── doctor/
+│   │   ├── dashboard/
+│   │   ├── appointments/
+│   │   └── prescriptions/
+│   └── admin/
+│       ├── dashboard/
+│       ├── doctors/
+│       ├── departments/
+│       └── billing/
+└── models/
+    ├── user.model.ts
+    ├── patient.model.ts
+    ├── doctor.model.ts
+    ├── appointment.model.ts
+    └── prescription.model.ts
+```
+
+## Key Features Implementation
+
+**Appointment Booking Flow**
+1. Search doctors (filters: specialization, availability)
+2. Select doctor and view available slots
+3. Book appointment (real-time validation)
+4. Show confirmation with details
+
+**Doctor Dashboard**
+- Today's appointments list
+- Quick actions (view patient, add prescription)
+- Update availability
+
+**Patient Dashboard**
+- Upcoming appointments
+- Recent prescriptions
+- Medical history
+- Pending bills
+
+**Admin Panel**
+- Doctor management (CRUD)
+- Department management
+- Billing records
+- Reports generation
+
+## Accessibility
+
+- Use semantic HTML: `<button>`, `<nav>`, `<main>`, `<aside>`
+- Add ARIA labels: `aria-label`, `aria-describedby`
+- Ensure keyboard navigation (tab order, focus management)
+- Color contrast WCAG AA compliant
+- Alt text for images
+- Screen reader announcements for dynamic content
+
+## Error Handling
+
+```typescript
+// In components
+this.appointmentService.getAppointments().subscribe({
+  next: (appointments) => this.appointments.set(appointments),
+  error: (error) => {
+    this.errorMessage.set('Failed to load appointments. Please try again.');
+    console.error('Error loading appointments:', error);
+  }
+});
+
+// Global error interceptor
+export const errorInterceptor: HttpInterceptorFn = (req, next) => {
+  return next(req).pipe(
+    catchError((error: HttpErrorResponse) => {
+      // Handle global errors
+      return throwError(() => error);
+    })
+  );
+};
+```
+
+## Performance Optimization
+
+- Use `OnPush` change detection
+- Implement virtual scrolling for large lists (CDK)
+- Lazy load all feature routes
+- Use `@defer` for below-fold content
+- Add `trackBy` in `@for` loops
+- Debounce search inputs (300ms)
+- Implement pagination for large datasets
+
+## Security
+
+- Never store tokens in localStorage (use httpOnly cookies)
+- Sanitize user inputs (Angular built-in)
+- Implement auth token refresh
+- Use route guards for protected routes
+- Role-based UI rendering
+- Validate on both client and server
 
 ## Critical Reminders
 
-- **ALWAYS reason deeply before implementing**
-- **NO test files, NO documentation files, NO .md files**
-- **Accessibility first**: Semantic HTML, ARIA, keyboard navigation
-- **Performance matters**: OnPush, lazy loading, virtual scrolling
-- **Security**: Token management, input sanitization, role-based access
-- **User experience**: Loading states, error handling, feedback
-- **Type safety**: No `any`, proper interfaces, type guards
-- **Signals over RxJS**: Use signals for state, observables for HTTP
-- **Native control flow**: Use @if/@for/@switch, not structural directives
-- **Standalone components**: No NgModules, use imports array
-- **Consistency**: Follow established patterns throughout codebase
+**ALWAYS use Angular CLI** for generating files
+**Backend Integration** - all data via REST API services
+**TailwindCSS only** - no custom CSS, use utility classes
+**No tests/docs** unless explicitly requested
+**Use `inject()`** not constructor injection
+**Signals for state** not RxJS subjects
+**Native control flow** (`@if`, `@for`, `@switch`)
+**Standalone components** - no NgModules
+**Deep reasoning** before implementation
+**Accessibility first** - semantic HTML, ARIA, keyboard nav
